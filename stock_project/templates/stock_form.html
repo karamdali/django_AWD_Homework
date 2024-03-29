@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Data Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        input[type="date"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #stock-data {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Stock Data Viewer</h2>
+    <form id="stock-form" method="post" action=".">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="ticker">Stock Ticker Symbol:</label>
+            {{form.ticker_symbol}}
+            <!--input type="text" id="ticker" name="ticker" placeholder="Enter stock ticker symbol"-->
+        </div>
+        <div class="form-group">
+            <label for="start-date">Start Date:</label>
+            {{form.start_date}}
+            <!--input type="date" id="start-date" name="start-date" placeholder="YYYY-MM-DD"-->
+        </div>
+        <div class="form-group">
+            <label for="end-date">End Date:</label>
+            {{form.end_date}}
+            <!--input type="date" id="end-date" name="end-date" placeholder="YYYY-MM-DD"-->
+        </div>
+        <button type="submit">Submit</button>
+    </form>
+
+    <div id="stock-data">
+        <canvas class="chart" id="price-chart" style="width:100%;max-width:700px"></canvas>
+    </div>
+</div>
+
+<script>
+
+
+var chartID = document.getElementById("price-chart");
+
+var dataFirst = {
+    label: "Close price",
+    data: [0, 0, 0, 0, 0, 0, 0],
+    lineTension: 0,
+    fill: false,
+    borderColor: 'red'
+  };
+
+var dataSecond = {
+    label: "Open price",
+    data: [0, 0, 0, 0, 0, 0, 0],
+    lineTension: 0,
+    fill: false,
+  borderColor: 'green'
+  };
+
+var priceData = {
+  labels: ["0", "1", "2", "3", "4", "5", "6"],
+  datasets: [dataFirst, dataSecond]
+};
+
+var chartOptions = {
+  legend: {
+    display: true,
+    position: 'top',
+    labels: {
+      boxWidth: 80,
+      fontColor: 'black'
+    }
+  }
+};
+
+var lineChart = new Chart(chartID, {
+  type: 'line',
+  data: priceData,
+  options: chartOptions
+});
+stockData = JSON.parse("{{ stock_data|escapejs }}");
+if (stockData) {
+                openPrices = stockData.open_prices;
+                closePrices = stockData.close_prices;
+                dates = stockData.dates;
+
+                // Use the data as needed
+                lineChart.data.labels = dates;
+                lineChart.data.datasets[0].data = closePrices;
+                lineChart.data.datasets[1].data = openPrices;
+                lineChart.update();
+}
+
+</script>
+
+</body>
+</html>
